@@ -1,7 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import express from 'express';
-
+import { RpcExceptionFilter } from './filters/rpc-exception.filter';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
+import { TransformResponseInterceptor } from './interceptors/transform-response.interceptor';
+import CookieParser from 'cookie-parser';
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
@@ -9,11 +12,21 @@ async function bootstrap() {
 	app.use(express.json({ limit: '10mb' }));
 	app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+	// Register exception filters
+	app.useGlobalFilters(new RpcExceptionFilter(), new GlobalExceptionFilter());
+
+	// Register interceptors
+	app.useGlobalInterceptors(new TransformResponseInterceptor());
+
 	app.enableCors({
 		origin: '*',
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
 		credentials: true,
 	});
+
+	// Register Cookie Parser middleware
+	app.use(CookieParser());
+
 	await app.listen(parseInt(process.env.PORT, 10) ?? 8888);
 
 	process.on('SIGINT', () => {

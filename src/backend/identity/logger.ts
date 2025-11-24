@@ -38,3 +38,5 @@ export const winstonConfig = {
 		}),
 	],
 };
+
+export const logger = winston.createLogger(winstonConfig);

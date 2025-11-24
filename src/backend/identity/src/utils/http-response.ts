@@ -8,18 +8,11 @@ export default class HttpResponse {
 		this.data = data;
 	}
 
-	toJSON(): string {
-		const omitNullData = {};
-		for (const key of this.data) {
-			if (this.data[key] !== null || this.data[key] !== undefined) {
-				omitNullData[key] = this.data[key];
-			}
-		}
-
-		return JSON.stringify({
+	toJSON() {
+		return {
 			code: this.code,
 			message: this.message,
-			data: omitNullData,
-		});
+			data: this.data,
+		};
 	}
 }

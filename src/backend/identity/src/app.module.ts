@@ -9,6 +9,8 @@ import { Authority } from 'src/entity/authority';
 import { Role } from 'src/entity/role';
 import { ConfigModule } from '@nestjs/config';
 import { AuthoritiesModule } from 'src/authorities/authorities.module';
+import { AuthModule } from './auth/auth.module';
+import { RemoveToken } from 'src/entity/remove-token';
 
 @Module({
 	imports: [
@@ -21,13 +23,14 @@ import { AuthoritiesModule } from 'src/authorities/authorities.module';
 			username: process.env.USERNAME_DB,
 			password: process.env.PASSWORD_DB,
 			database: process.env.DATABASE_DB,
-			entities: [User, Role, Authority], // add your entity here
+			entities: [User, Role, Authority, RemoveToken], // add your entity here
 
 			synchronize: true,
 		}),
 		UsersModule,
 		RolesModule,
 		AuthoritiesModule,
+		AuthModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

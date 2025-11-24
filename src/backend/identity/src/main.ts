@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MicroserviceOptions, Transport, RpcException } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
+import ErrorCode from 'src/exception/error-code';
+import { GlobalExceptionFilter } from 'src/filter/global-exception/global-exception.filter';
 
 async function bootstrap() {
 	const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -9,6 +12,29 @@ async function bootstrap() {
 			port: parseInt(process.env.PORT, 10),
 		},
 	});
+
+	app.useGlobalPipes(
+		new ValidationPipe({
+			transform: true,
+			whitelist: true,
+			forbidNonWhitelisted: true,
+			exceptionFactory: (errors) => {
+				const messages = errors.map((err) => {
+					return {
+						[err.property]: Object.values(err.constraints),
+					};
+				});
+				throw new RpcException({
+					code: ErrorCode.VALIDATION_FAILED.code,
+					message: 'Validation failed',
+					status: ErrorCode.VALIDATION_FAILED.httpStatus,
+					errors: messages,
+				});
+			},
+		}),
+	);
+
+	app.useGlobalFilters(new GlobalExceptionFilter());
 
 	await app.listen();
 

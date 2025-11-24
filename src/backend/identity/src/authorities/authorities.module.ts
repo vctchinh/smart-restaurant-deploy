@@ -8,5 +8,6 @@ import { Authority } from 'src/entity/authority';
 	imports: [TypeOrmModule.forFeature([Authority])],
 	providers: [AuthoritiesService],
 	controllers: [AuthoritiesController],
+	exports: [AuthoritiesService],
 })
 export class AuthoritiesModule {}

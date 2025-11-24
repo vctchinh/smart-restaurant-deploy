@@ -1,9 +1,12 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { IdentityController } from './identity/identity.controller';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerMiddleware } from 'src/middleware/logger/logger.middleware';
+import { JwtConfigModule } from './jwt/jwt.config.module';
+import { AddHeaderMiddleware } from 'src/middleware/add-header/add-header.middleware';
 
 @Module({
 	imports: [
@@ -18,8 +21,13 @@ import { ConfigModule } from '@nestjs/config';
 				},
 			},
 		]),
+		JwtConfigModule,
 	],
 	controllers: [AppController, IdentityController],
 	providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(LoggerMiddleware, AddHeaderMiddleware).forRoutes('*');
+	}
+}
