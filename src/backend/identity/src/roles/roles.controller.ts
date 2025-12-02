@@ -3,13 +3,24 @@ import { MessagePattern } from '@nestjs/microservices';
 import CreateRoleRequestDto from 'src/roles/dtos/request/create-role-request.dto';
 import { RolesService } from 'src/roles/roles.service';
 import HttpResponse from 'src/utils/http-response';
+import { ConfigService } from '@nestjs/config';
+import AppException from 'src/exception/app-exception';
+import ErrorCode from 'src/exception/error-code';
+import { GetAllRolesRequestDto } from 'dtos/request/get-all-roles-request.dto';
 
 @Controller()
 export class RolesController {
-	constructor(private readonly rolesService: RolesService) {}
+	constructor(
+		private readonly rolesService: RolesService,
+		private readonly config: ConfigService,
+	) {}
 
 	@MessagePattern('roles:get-all-roles')
-	async getAllRoles(): Promise<HttpResponse> {
+	async getAllRoles(data: GetAllRolesRequestDto): Promise<HttpResponse> {
+		const expectedApiKey = this.config.get<string>('IDENTITY_API_KEY');
+		if (data.identityApiKey !== expectedApiKey) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
 		return new HttpResponse(
 			200,
 			'Get all roles successful',
@@ -19,6 +30,10 @@ export class RolesController {
 
 	@MessagePattern('roles:create-role')
 	async createRole(data: CreateRoleRequestDto): Promise<HttpResponse> {
+		const expectedApiKey = this.config.get<string>('IDENTITY_API_KEY');
+		if (data.identityApiKey !== expectedApiKey) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
 		return new HttpResponse(
 			200,
 			'Create role successful',

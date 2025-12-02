@@ -10,6 +10,7 @@ import {
 	Param,
 	Req,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ClientProxy } from '@nestjs/microservices';
 import { AuthGuard } from '@nestjs/passport';
@@ -24,52 +25,88 @@ import Role from 'src/guard/check-role/check-role.guard';
 export class IdentityController {
 	constructor(
 		@Inject('IDENTITY_SERVICE') private readonly identityClient: ClientProxy,
-		private jwtService: JwtService,
+		private readonly jwtService: JwtService,
+		private readonly configService: ConfigService,
 	) {}
 
 	@Post('users/register')
 	registerUser(@Body() data: any) {
-		return this.identityClient.send('users:register', data);
+		return this.identityClient.send('users:register', {
+			...data,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
+
+	@UseGuards(AuthGuard('jwt'))
+	@Get('users/my-user')
+	getMyUser(@Req() req: Request) {
+		const userId = (req as any).user.userId;
+		if (!userId) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
+		return this.identityClient.send('users:get-user-by-id', {
+			userId,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
+	}
+
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	@Get('users/get-all-users')
 	getAllUsers() {
-		return this.identityClient.send('users:get-all-users', {});
+		return this.identityClient.send('users:get-all-users', {
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Get('users/get-user-by-id/:userId')
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	getUserById(@Param('userId') userId: string) {
-		return this.identityClient.send('users:get-user-by-id', userId);
+		return this.identityClient.send('users:get-user-by-id', {
+			userId,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Post('roles/create-role')
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	createRole(@Body() data: any) {
-		return this.identityClient.send('roles:create-role', data);
+		return this.identityClient.send('roles:create-role', {
+			...data,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Get('roles/get-all-roles')
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	getAllRoles() {
-		return this.identityClient.send('roles:get-all-roles', {});
+		return this.identityClient.send('roles:get-all-roles', {
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Post('authorities/create-authority')
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	createAuthority(@Body() data: any) {
-		return this.identityClient.send('authorities:create-authority', data);
+		return this.identityClient.send('authorities:create-authority', {
+			...data,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Get('authorities/get-all-authorities')
 	@UseGuards(AuthGuard('jwt'), Role('ADMIN'))
 	getAllAuthorities() {
-		return this.identityClient.send('authorities:get-all-authorities', {});
+		return this.identityClient.send('authorities:get-all-authorities', {
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@Post('auth/login')
 	async login(@Body() data: any, @Res() res: Response) {
-		const observableResponse = this.identityClient.send('auth:login', data);
+		const observableResponse = this.identityClient.send('auth:login', {
+			...data,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 		const response = await firstValueFrom(observableResponse);
 
 		if (!response || !response.code || response.code !== HttpStatus.OK) {
@@ -143,7 +180,10 @@ export class IdentityController {
 		if (!user) {
 			throw new AppException(ErrorCode.UNAUTHORIZED);
 		}
-		return this.identityClient.send('auth:me', user.userId);
+		return this.identityClient.send('auth:me', {
+			userId: user.userId,
+			identityApiKey: this.configService.get('IDENTITY_API_KEY'),
+		});
 	}
 
 	@UseGuards(AuthGuard('jwt'))

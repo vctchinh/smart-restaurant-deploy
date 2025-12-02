@@ -1,15 +1,27 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import RegisterUserRequestDto from 'src/users/dtos/request/register-user-request.dto';
 import { UsersService } from 'src/users/users.service';
 import HttpResponse from 'src/utils/http-response';
+import { ConfigService } from '@nestjs/config';
+import AppException from 'src/exception/app-exception';
+import ErrorCode from 'src/exception/error-code';
+import RegisterUserWithProfileRequestDto from 'src/users/dtos/request/register-user-with-profile-request.dto';
+import { GetAllUsersRequestDto } from 'dtos/request/get-all-users-request.dto';
+import { GetUserByIdRequestDto } from 'dtos/request/get-user-by-id-request.dto';
 
 @Controller()
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	constructor(
+		private readonly usersService: UsersService,
+		private readonly config: ConfigService,
+	) {}
 
 	@MessagePattern('users:register')
-	async registerUser(data: RegisterUserRequestDto): Promise<HttpResponse> {
+	async registerUser(data: RegisterUserWithProfileRequestDto): Promise<HttpResponse> {
+		const expectedApiKey = this.config.get<string>('IDENTITY_API_KEY');
+		if (data.identityApiKey !== expectedApiKey) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
 		return new HttpResponse(
 			200,
 			'Register successful',
@@ -18,7 +30,11 @@ export class UsersController {
 	}
 
 	@MessagePattern('users:get-all-users')
-	async getAllUsers(): Promise<HttpResponse> {
+	async getAllUsers(data: GetAllUsersRequestDto): Promise<HttpResponse> {
+		const expectedApiKey = this.config.get<string>('IDENTITY_API_KEY');
+		if (data.identityApiKey !== expectedApiKey) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
 		return new HttpResponse(
 			200,
 			'Get all users successful',
@@ -27,11 +43,15 @@ export class UsersController {
 	}
 
 	@MessagePattern('users:get-user-by-id')
-	async getUserById(userId: string): Promise<HttpResponse> {
+	async getUserById(data: GetUserByIdRequestDto): Promise<HttpResponse> {
+		const expectedApiKey = this.config.get<string>('IDENTITY_API_KEY');
+		if (data.identityApiKey !== expectedApiKey) {
+			throw new AppException(ErrorCode.UNAUTHORIZED);
+		}
 		return new HttpResponse(
 			200,
 			'Get user by id successful',
-			await this.usersService.getUserById(userId),
+			await this.usersService.getUserById(data.userId),
 		);
 	}
 }

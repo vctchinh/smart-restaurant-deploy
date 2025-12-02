@@ -15,7 +15,6 @@ import { RemoveToken } from 'src/entity/remove-token';
 @Module({
 	imports: [
 		ConfigModule.forRoot({ isGlobal: true }),
-
 		TypeOrmModule.forRoot({
 			type: 'postgres',
 			host: process.env.HOST_DB,

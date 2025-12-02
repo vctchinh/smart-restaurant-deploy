@@ -8,4 +8,7 @@ export default class CreateAuthorityRequestDto {
 	@IsOptional()
 	@IsString()
 	description?: string;
+
+	@IsOptional()
+	identityApiKey?: string;
 }

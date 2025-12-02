@@ -12,4 +12,7 @@ export default class CreateRoleRequestDto {
 	@IsOptional()
 	@IsArray()
 	authorities?: string[];
+
+	@IsOptional()
+	identityApiKey?: string;
 }

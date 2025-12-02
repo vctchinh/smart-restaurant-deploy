@@ -57,6 +57,18 @@ export default class ErrorCode {
 		'Token has already been removed',
 		400,
 	);
+
+	static readonly PROFILE_NOT_FOUND: ErrorCode = new ErrorCode(
+		1013,
+		'Profile not found',
+		404,
+	);
+
+	static readonly PROFILE_SERVICE_ERROR: ErrorCode = new ErrorCode(
+		1014,
+		'Profile service error',
+		500,
+	);
 	constructor(
 		public readonly code: number,
 		public readonly message: string,

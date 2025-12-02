@@ -22,6 +22,17 @@ export default class ErrorCode {
 		'Authority not found',
 		404,
 	);
+	static readonly PROFILE_NOT_FOUND: ErrorCode = new ErrorCode(
+		1013,
+		'Profile not found',
+		404,
+	);
+
+	static readonly PROFILE_SERVICE_ERROR: ErrorCode = new ErrorCode(
+		1014,
+		'Profile service error',
+		500,
+	);
 
 	static readonly ROLE_NOT_FOUND: ErrorCode = new ErrorCode(1006, 'Role not found', 404);
 

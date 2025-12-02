@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { LoggerMiddleware } from 'src/middleware/logger/logger.middleware';
 import { JwtConfigModule } from './jwt/jwt.config.module';
 import { AddHeaderMiddleware } from 'src/middleware/add-header/add-header.middleware';
+import { ProfileController } from './services/profile/profile.controller';
 
 @Module({
 	imports: [
@@ -20,10 +21,18 @@ import { AddHeaderMiddleware } from 'src/middleware/add-header/add-header.middle
 					port: +process.env.PORT_IDENTITY_SERVICE || 8080,
 				},
 			},
+			{
+				name: 'PROFILE_SERVICE',
+				transport: Transport.TCP,
+				options: {
+					host: process.env.HOST_PROFILE_SERVICE || 'localhost',
+					port: +process.env.PORT_PROFILE_SERVICE || 8081,
+				},
+			},
 		]),
 		JwtConfigModule,
 	],
-	controllers: [AppController, IdentityController],
+	controllers: [AppController, IdentityController, ProfileController],
 	providers: [AppService],
 })
 export class AppModule implements NestModule {

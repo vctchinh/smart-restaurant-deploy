@@ -12,18 +12,23 @@ import ErrorCode from 'src/exception/error-code';
 import GetRoleResponseDto from 'src/roles/dtos/response/get-role-response.dto';
 import GetAuthorityResponseDto from 'src/authorities/dtos/response/get-authority-response.dto';
 import { GetUserResponseDto } from 'src/users/dtos/response/get-user-response.dto';
-import RegisterUserRequestDto from 'src/users/dtos/request/register-user-request.dto';
 import RegisterUserResponseDto from 'src/users/dtos/response/register-user-response.dto';
+import { ClientProxy } from '@nestjs/microservices';
+import { Inject } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import RegisterUserWithProfileRequestDto from 'src/users/dtos/request/register-user-with-profile-request.dto';
+
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User) private readonly userRepository: Repository<User>,
 		private readonly rolesService: RolesService,
+		@Inject('PROFILE_SERVICE') private readonly profileClient: ClientProxy,
 	) {}
 
-	async Register(data: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
-		// Mock created user response
-
+	async Register(
+		data: RegisterUserWithProfileRequestDto,
+	): Promise<RegisterUserResponseDto> {
 		const rolesString = data.roles || ['USER'];
 		const roles: Role[] = [];
 		for (const role of rolesString) {
@@ -59,6 +64,46 @@ export class UsersService {
 				});
 				return dto;
 			});
+
+			try {
+				// Chỉ lấy các field của profile, không lấy username, email, password, roles...
+				const profileData: any = {
+					userId: savedUser.userId,
+					profileApiKey: process.env.PROFILE_API_KEY,
+				};
+
+				// Map các optional profile fields nếu có
+				if (data.birthDay) profileData.birthDay = data.birthDay;
+				if (data.phoneNumber) profileData.phoneNumber = data.phoneNumber;
+				if (data.address) profileData.address = data.address;
+				if (data.restaurantName) profileData.restaurantName = data.restaurantName;
+				if (data.businessAddress) profileData.businessAddress = data.businessAddress;
+				if (data.contractNumber) profileData.contractNumber = data.contractNumber;
+				if (data.contractEmail) profileData.contractEmail = data.contractEmail;
+				if (data.cardHolderName) profileData.cardHolderName = data.cardHolderName;
+				if (data.accountNumber) profileData.accountNumber = data.accountNumber;
+				if (data.expirationDate) profileData.expirationDate = data.expirationDate;
+				if (data.cvv) profileData.cvv = data.cvv;
+				if (data.frontImage) profileData.frontImage = data.frontImage;
+				if (data.backImage) profileData.backImage = data.backImage;
+
+				const profile: any = await firstValueFrom(
+					this.profileClient.send('profiles:modify-profile', profileData),
+				);
+
+				if (!profile || !profile.userId) {
+					await this.userRepository.delete({ userId: savedUser.userId });
+					throw new AppException(ErrorCode.PROFILE_SERVICE_ERROR);
+				}
+			} catch (err) {
+				await this.userRepository.delete({ userId: savedUser.userId });
+				if (err instanceof AppException) {
+					throw err;
+				}
+				console.error('Error calling profile service:', err);
+				throw new AppException(ErrorCode.PROFILE_SERVICE_ERROR);
+			}
+
 			return response;
 		} catch (err) {
 			console.error('Error saving user:', err);
