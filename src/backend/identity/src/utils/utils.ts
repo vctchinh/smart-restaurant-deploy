@@ -14,3 +14,12 @@ export function toJSONIgnoreNullsOrUndefined(obj: JsonObject): JsonObject {
 
 	return jsonObj;
 }
+
+export function extractFields(source: any, fields: string[]): any {
+	return fields.reduce((acc, field) => {
+		if (source[field] !== undefined && source[field] !== null) {
+			acc[field] = source[field];
+		}
+		return acc;
+	}, {} as any);
+}

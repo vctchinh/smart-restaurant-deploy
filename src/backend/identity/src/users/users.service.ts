@@ -17,9 +17,26 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import RegisterUserWithProfileRequestDto from 'src/users/dtos/request/register-user-with-profile-request.dto';
+import { extractFields } from 'src/utils/utils';
 
 @Injectable()
 export class UsersService {
+	private readonly PROFILE_FIELDS = [
+		'birthDay',
+		'phoneNumber',
+		'address',
+		'restaurantName',
+		'businessAddress',
+		'contractNumber',
+		'contractEmail',
+		'cardHolderName',
+		'accountNumber',
+		'expirationDate',
+		'cvv',
+		'frontImage',
+		'backImage',
+	];
+
 	constructor(
 		@InjectRepository(User) private readonly userRepository: Repository<User>,
 		private readonly rolesService: RolesService,
@@ -66,26 +83,11 @@ export class UsersService {
 			});
 
 			try {
-				// Chỉ lấy các field của profile, không lấy username, email, password, roles...
-				const profileData: any = {
+				const profileData = {
 					userId: savedUser.userId,
 					profileApiKey: process.env.PROFILE_API_KEY,
+					...extractFields(data, this.PROFILE_FIELDS),
 				};
-
-				// Map các optional profile fields nếu có
-				if (data.birthDay) profileData.birthDay = data.birthDay;
-				if (data.phoneNumber) profileData.phoneNumber = data.phoneNumber;
-				if (data.address) profileData.address = data.address;
-				if (data.restaurantName) profileData.restaurantName = data.restaurantName;
-				if (data.businessAddress) profileData.businessAddress = data.businessAddress;
-				if (data.contractNumber) profileData.contractNumber = data.contractNumber;
-				if (data.contractEmail) profileData.contractEmail = data.contractEmail;
-				if (data.cardHolderName) profileData.cardHolderName = data.cardHolderName;
-				if (data.accountNumber) profileData.accountNumber = data.accountNumber;
-				if (data.expirationDate) profileData.expirationDate = data.expirationDate;
-				if (data.cvv) profileData.cvv = data.cvv;
-				if (data.frontImage) profileData.frontImage = data.frontImage;
-				if (data.backImage) profileData.backImage = data.backImage;
 
 				const profile: any = await firstValueFrom(
 					this.profileClient.send('profiles:modify-profile', profileData),
