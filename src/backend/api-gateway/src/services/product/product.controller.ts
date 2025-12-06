@@ -15,7 +15,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { AuthGuard } from 'src/common/guards/get-role/auth.guard';
 import Role from 'src/common/guards/check-role/check-role.guard';
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
 	constructor(
 		@Inject('PRODUCT_SERVICE') private readonly productClient: ClientProxy,

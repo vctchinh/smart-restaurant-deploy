@@ -55,6 +55,6 @@ export default class Profile {
 	})
 	updatedAt: Date;
 
-	@Column({ nullable: false, default: () => false })
+	@Column({ nullable: false, default: false })
 	verified: boolean;
 }
