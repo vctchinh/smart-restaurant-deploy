@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport, RpcException } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
 import ErrorCode from '@shared/exceptions/error-code';
 import { GlobalExceptionFilter } from 'src/common/filters/global-exception/global-exception.filter';
 

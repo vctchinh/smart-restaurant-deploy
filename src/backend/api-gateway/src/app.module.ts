@@ -28,6 +28,14 @@ import { RateLimitMiddleware } from 'src/common/middleware/rate-limit/rate-limit
 					port: +process.env.PORT_PROFILE_SERVICE || 8081,
 				},
 			},
+			{
+				name: 'PRODUCT_SERVICE',
+				transport: Transport.TCP,
+				options: {
+					host: process.env.HOST_PRODUCT_SERVICE || 'localhost',
+					port: +process.env.PORT_PRODUCT_SERVICE || 8082,
+				},
+			},
 		]),
 	],
 	controllers: [AppController, IdentityController, ProfileController],

@@ -14,6 +14,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		'/api/v1/identity/auth/login',
 		'/api/v1/identity/auth/register',
 		'/api/v1/identity/auth/refresh',
+		'/api/v1/product/public/menu',
 	];
 
 	private readonly rateLimitStore = new Map<string, RateLimitEntry>();

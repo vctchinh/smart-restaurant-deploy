@@ -1,42 +1,37 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport, RpcException } from '@nestjs/microservices';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import ErrorCode from 'src/exception/error-code';
-import { GlobalExceptionFilter } from 'src/filter/global-exception/global-exception.filter';
+import { CatchAppExceptionFilter, GlobalExceptionFilter } from './common/filters';
 
 async function bootstrap() {
-	const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+	const app = await NestFactory.create(AppModule);
+	const configService = app.get(ConfigService);
+
+	const port = configService.get<number>('PORT') || 8082;
+
+	// Configure microservice with TCP transport
+	app.connectMicroservice<MicroserviceOptions>({
 		transport: Transport.TCP,
 		options: {
-			port: parseInt(process.env.PORT, 10),
+			port: port,
 		},
 	});
 
+	// Global pipes and filters
 	app.useGlobalPipes(
 		new ValidationPipe({
-			transform: true,
 			whitelist: true,
-			forbidNonWhitelisted: true,
-			exceptionFactory: (errors) => {
-				const messages = errors.map((err) => {
-					return {
-						[err.property]: Object.values(err.constraints),
-					};
-				});
-				throw new RpcException({
-					code: ErrorCode.VALIDATION_FAILED.code,
-					message: 'Validation failed',
-					status: ErrorCode.VALIDATION_FAILED.httpStatus,
-					errors: messages,
-				});
-			},
+			forbidNonWhitelisted: false,
+			transform: true,
 		}),
 	);
 
-	app.useGlobalFilters(new GlobalExceptionFilter());
+	app.useGlobalFilters(new GlobalExceptionFilter(), new CatchAppExceptionFilter());
 
-	await app.listen();
+	await app.startAllMicroservices();
+	console.log(`🚀 Product Service is running on TCP port ${port}`);
 
 	process.on('SIGINT', () => {
 		console.log('SIGINT received. Shutting down gracefully...');

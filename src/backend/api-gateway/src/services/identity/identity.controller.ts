@@ -107,7 +107,7 @@ export class IdentityController {
 		});
 		const response = await firstValueFrom(observableResponse);
 
-		if (!response || !response.code || response.code !== 200) {
+		if (!response || !response.code || response.code !== HttpStatus.OK) {
 			return res.status(response?.code || HttpStatus.UNAUTHORIZED).json(response);
 		}
 

@@ -119,6 +119,29 @@ export default class ErrorCode {
     400
   );
 
+  // ==================== PRODUCT & MENU (3000-3999) ====================
+
+  /** Menu category not found */
+  static readonly CATEGORY_NOT_FOUND: ErrorCode = new ErrorCode(
+    3001,
+    "Category not found",
+    404
+  );
+
+  /** Menu item not found */
+  static readonly ITEM_NOT_FOUND: ErrorCode = new ErrorCode(
+    3002,
+    "Menu item not found",
+    404
+  );
+
+  /** Modifier not found */
+  static readonly MODIFIER_NOT_FOUND: ErrorCode = new ErrorCode(
+    3003,
+    "Modifier not found",
+    404
+  );
+
   /** Deprecated: Use VALIDATION_FAILED instead */
   static readonly ERROR_VALIDATION: ErrorCode = new ErrorCode(
     2902,
