@@ -1,1 +1,18 @@
-@import "tailwindcss"
+@import 'tailwindcss';
+
+/* Custom Scrollbar - Hide scrollbar but keep functionality */
+.custom-scrollbar {
+	/* Firefox */
+	scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+	/* Chrome, Safari, Edge */
+	width: 0px;
+	background: transparent;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+	/* Optional: Show faint scrollbar on hover */
+	background-color: rgba(157, 171, 185, 0.2);
+}
