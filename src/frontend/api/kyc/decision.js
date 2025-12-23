@@ -35,8 +35,8 @@ export default async function handler(req, res) {
 
 		console.log('📤 Fetching KYC decision for session:', sessionId)
 
-		// Forward request to Didit API
-		const response = await axios.get(`${DIDIT_API_BASE}/decision/${sessionId}`, {
+		// Forward request to Didit API - correct endpoint
+		const response = await axios.get(`${DIDIT_API_BASE}/session/${sessionId}/decision`, {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-Api-Key': DIDIT_API_KEY,
