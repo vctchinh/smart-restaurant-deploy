@@ -127,6 +127,9 @@ export const getKYCResult = async (sessionId) => {
 
 		const result = response.data
 
+		// Debug: Log response to see exact structure
+		console.log('🔍 KYC Decision API Response:', result)
+
 		return {
 			success: true,
 			data: result,

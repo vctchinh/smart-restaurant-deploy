@@ -601,8 +601,20 @@ const RestaurantOnboarding = () => {
 			// Fetch KYC result from Didit API
 			const result = await getKYCResult(kycStatus.sessionId)
 
+			// Debug: Log full result to see exact structure
+			console.log('📊 Full KYC Result:', result)
+			console.log('📊 Result Status:', result.status)
+			console.log('📊 Result Data:', result.data)
+
+			// Normalize status to lowercase for comparison
+			const normalizedStatus = (result.status || '').toLowerCase()
+
 			// Check if verification is approved
-			if (result.status === 'Approved') {
+			if (
+				normalizedStatus === 'approved' ||
+				normalizedStatus === 'completed' ||
+				normalizedStatus === 'success'
+			) {
 				// Extract and upload CCCD images
 				const { cccdFrontUrl, cccdBackUrl, citizenInfo } = await completeKYCVerification(
 					kycStatus.sessionId,
@@ -625,14 +637,22 @@ const RestaurantOnboarding = () => {
 
 				// Show success message
 				alert('✅ Identity verification successful!')
-			} else if (result.status === 'In Review') {
+			} else if (
+				normalizedStatus === 'in review' ||
+				normalizedStatus === 'pending' ||
+				normalizedStatus === 'processing'
+			) {
 				// Still processing
 				setKycStatus((prev) => ({
 					...prev,
 					error:
 						'Verification is still being processed. Please wait a moment and try again.',
 				}))
-			} else if (result.status === 'Declined' || result.status === 'Failed') {
+			} else if (
+				normalizedStatus === 'declined' ||
+				normalizedStatus === 'failed' ||
+				normalizedStatus === 'rejected'
+			) {
 				// Verification failed
 				setKycStatus((prev) => ({
 					...prev,
@@ -643,8 +663,9 @@ const RestaurantOnboarding = () => {
 				// Not started or other status
 				setKycStatus((prev) => ({
 					...prev,
-					error:
-						'Verification not completed yet. Please complete the verification in the pop-up window first.',
+					error: `Verification status: ${
+						result.status || 'Unknown'
+					}. Please complete the verification in the pop-up window first.`,
 				}))
 			}
 		} catch (error) {
