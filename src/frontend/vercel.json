@@ -6,6 +6,10 @@
 	"framework": "vite",
 	"rewrites": [
 		{
+			"source": "/api/kyc/decision/:sessionId",
+			"destination": "/api/kyc/decision?sessionId=:sessionId"
+		},
+		{
 			"source": "/api/v1/:path*",
 			"destination": "https://smart-restaurant-gateway.onrender.com/api/v1/:path*"
 		},
