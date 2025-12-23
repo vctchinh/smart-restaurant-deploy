@@ -6,8 +6,8 @@ import axios from 'axios'
 // Didit API Configuration
 // In production: Call Didit API directly (their API allows CORS)
 // In development: Use proxy /api/kyc -> https://verification.didit.me/v2
-const DIDIT_API_BASE = import.meta.env.PROD 
-	? 'https://verification.didit.me/v2' 
+const DIDIT_API_BASE = import.meta.env.PROD
+	? 'https://verification.didit.me/v2'
 	: '/api/kyc'
 const DIDIT_API_KEY = import.meta.env.VITE_DIDIT_API_KEY
 const DIDIT_WORKFLOW_ID = import.meta.env.VITE_DIDIT_WORKFLOW_ID
@@ -79,12 +79,12 @@ export const createKYCSession = async (userId, email, phone) => {
  * @returns {Promise<Object>} KYC verification result with extracted data
  */
 export const getKYCResult = async (sessionId) => {
-	try {required for Didit API
+	try {
+		// X-Api-Key header required for Didit API
 		const response = await axios.get(`${DIDIT_API_BASE}/session/${sessionId}/decision/`, {
 			headers: {
 				'X-Api-Key': DIDIT_API_KEY,
 			},
-		const response = await axios.get(`${DIDIT_API_BASE}/session/${sessionId}/decision/`, {
 			timeout: 15000,
 		})
 
