@@ -54,10 +54,14 @@ export default async function handler(req, res) {
 			}
 			console.error('❌ Didit API error:', errorDetail)
 
-			// Return more detailed error to help debug
+			// Return complete error with message
 			return res.status(response.status).json({
 				error: 'Didit API rejected the request',
+				message: data.message || data.error || data.detail || 'Unknown error from Didit',
 				details: data,
+				statusCode: response.status,
+			})
+		}
 				statusCode: response.status,
 			})
 		}

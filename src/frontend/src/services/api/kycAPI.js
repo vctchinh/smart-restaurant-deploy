@@ -33,6 +33,22 @@ export const createKYCSession = async (userId, email, phone) => {
 			)
 		}
 
+		// Normalize phone number to international format
+		let normalizedPhone = phone || '+84000000000'
+		if (normalizedPhone.startsWith('0')) {
+			// Convert 0xxx to +84xxx
+			normalizedPhone = '+84' + normalizedPhone.substring(1)
+		} else if (!normalizedPhone.startsWith('+')) {
+			// Add +84 if no prefix
+			normalizedPhone = '+84' + normalizedPhone
+		}
+
+		// Validate email format
+		const validEmail =
+			email && email.includes('@') && email.includes('.')
+				? email
+				: 'noreply@spillproofpos.com'
+
 		const payload = {
 			workflow_id: DIDIT_WORKFLOW_ID,
 			// No callback URL - we'll poll for results instead of redirect
@@ -44,9 +60,9 @@ export const createKYCSession = async (userId, email, phone) => {
 				user_id: userId,
 			},
 			contact_details: {
-				email: email || 'noreply@spillproofpos.com',
+				email: validEmail,
 				email_lang: 'vi',
-				phone: phone || '+84000000000',
+				phone: normalizedPhone,
 			},
 		}
 
