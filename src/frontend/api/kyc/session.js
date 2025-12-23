@@ -22,8 +22,16 @@ export default async function handler(req, res) {
 
 		if (!DIDIT_API_KEY) {
 			console.error('❌ VITE_DIDIT_API_KEY not configured')
-			return res.status(500).json({ error: 'Server configuration error' })
+			return res
+				.status(500)
+				.json({ error: 'Server configuration error: Missing API key' })
 		}
+
+		// Log request for debugging
+		console.log('📝 KYC Session request:', {
+			body: req.body,
+			hasApiKey: !!DIDIT_API_KEY,
+		})
 
 		// Forward request to Didit API
 		const response = await fetch('https://verification.didit.me/v2/session/', {
@@ -38,10 +46,23 @@ export default async function handler(req, res) {
 		const data = await response.json()
 
 		if (!response.ok) {
-			console.error('❌ Didit API error:', response.status, data)
-			return res.status(response.status).json(data)
+			const errorDetail = {
+				status: response.status,
+				statusText: response.statusText,
+				data,
+				requestBody: req.body,
+			}
+			console.error('❌ Didit API error:', errorDetail)
+
+			// Return more detailed error to help debug
+			return res.status(response.status).json({
+				error: 'Didit API rejected the request',
+				details: data,
+				statusCode: response.status,
+			})
 		}
 
+		console.log('✅ KYC Session created:', data.session_id)
 		// Return successful response
 		return res.status(200).json(data)
 	} catch (error) {
