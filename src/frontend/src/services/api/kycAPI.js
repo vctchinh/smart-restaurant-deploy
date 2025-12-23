@@ -3,13 +3,11 @@
 
 import axios from 'axios'
 
-// Didit API Configuration
-// In production: Call Didit API directly (their API allows CORS)
-// In development: Use proxy /api/kyc -> https://verification.didit.me/v2
-const DIDIT_API_BASE = import.meta.env.PROD
-	? 'https://verification.didit.me/v2'
-	: '/api/kyc'
-const DIDIT_API_KEY = import.meta.env.VITE_DIDIT_API_KEY
+// KYC API Configuration
+// Both dev and production use Vercel Serverless Functions as proxy to bypass CORS
+// Development: Vite proxy /api/kyc -> local dev (or could use Vercel Functions)
+// Production: /api/kyc -> Vercel Serverless Functions -> Didit API
+const KYC_API_BASE = '/api/kyc'
 const DIDIT_WORKFLOW_ID = import.meta.env.VITE_DIDIT_WORKFLOW_ID
 const DIDIT_CALLBACK_URL = import.meta.env.VITE_DIDIT_CALLBACK_URL
 
@@ -39,11 +37,11 @@ export const createKYCSession = async (userId, email, phone) => {
 			},
 		}
 
-		// X-Api-Key header required for Didit API
-		const response = await axios.post(`${DIDIT_API_BASE}/session/`, payload, {
+		// Call Vercel Serverless Function (which proxies to Didit API)
+		// No API key needed - handled server-side
+		const response = await axios.post(`${KYC_API_BASE}/session`, payload, {
 			headers: {
 				'Content-Type': 'application/json',
-				'X-Api-Key': DIDIT_API_KEY,
 			},
 			timeout: 15000,
 		})
@@ -80,11 +78,9 @@ export const createKYCSession = async (userId, email, phone) => {
  */
 export const getKYCResult = async (sessionId) => {
 	try {
-		// X-Api-Key header required for Didit API
-		const response = await axios.get(`${DIDIT_API_BASE}/session/${sessionId}/decision/`, {
-			headers: {
-				'X-Api-Key': DIDIT_API_KEY,
-			},
+		// Call Vercel Serverless Function (which proxies to Didit API)
+		// No API key needed - handled server-side
+		const response = await axios.get(`${KYC_API_BASE}/decision/${sessionId}`, {
 			timeout: 15000,
 		})
 
