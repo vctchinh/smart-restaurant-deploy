@@ -1,0 +1,24 @@
+{
+    "name": "@smart-restaurant/shared",
+    "version": "1.0.0",
+    "description": "Shared utilities, exceptions, and types for Smart Restaurant microservices",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch"
+    },
+    "keywords": [
+        "shared",
+        "microservices",
+        "utilities"
+    ],
+    "author": "Smart Restaurant Team",
+    "license": "MIT",
+    "dependencies": {
+        "@nestjs/microservices": "^10.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    }
+}
