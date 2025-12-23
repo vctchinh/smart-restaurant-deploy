@@ -45,6 +45,5 @@
 		"VITE_DIDIT_API_KEY": "7hwmBAe7gzf8RECVEc5oZWQc8Sp9_SDpX9lkLiHUyMs",
 		"VITE_DIDIT_WORKFLOW_ID": "5f32d046-a7e2-4429-b318-523f3f1b5487"
 	},
-	"comment": "VITE_DIDIT_CALLBACK_URL không cần thiết vì sử dụng polling thay vì callback"
 	"regions": ["sin1"]
 }
