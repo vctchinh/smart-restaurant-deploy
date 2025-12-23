@@ -14,7 +14,7 @@
 			"destination": "https://file-service-cdal.onrender.com/api/v1/file/:path*"
 		},
 		{
-			"source": "/(.*)",
+			"source": "/((?!api/).*)",
 			"destination": "/index.html"
 		}
 	],
