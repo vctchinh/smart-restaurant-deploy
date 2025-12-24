@@ -3,9 +3,11 @@
 
 import axios from 'axios'
 
-// Use Vite proxy to avoid CORS issues
-// In development: /api/kyc -> https://verification.didit.me/v2
-const DIDIT_API_BASE = '/api/kyc'
+// KYC API Configuration
+// Both dev and production use Vercel Serverless Functions as proxy to bypass CORS
+// Development: Vite proxy /api/kyc -> local dev (or could use Vercel Functions)
+// Production: /api/kyc -> Vercel Serverless Functions -> Didit API
+const KYC_API_BASE = '/api/kyc'
 const DIDIT_WORKFLOW_ID = import.meta.env.VITE_DIDIT_WORKFLOW_ID
 const DIDIT_CALLBACK_URL = import.meta.env.VITE_DIDIT_CALLBACK_URL
 
@@ -18,6 +20,35 @@ const DIDIT_CALLBACK_URL = import.meta.env.VITE_DIDIT_CALLBACK_URL
  */
 export const createKYCSession = async (userId, email, phone) => {
 	try {
+		// Debug environment variables
+		console.log('🔍 KYC Environment:', {
+			workflowId: DIDIT_WORKFLOW_ID,
+			callbackUrl: DIDIT_CALLBACK_URL,
+			hasWorkflowId: !!DIDIT_WORKFLOW_ID,
+		})
+
+		if (!DIDIT_WORKFLOW_ID) {
+			throw new Error(
+				'VITE_DIDIT_WORKFLOW_ID not configured. Check Vercel environment variables.',
+			)
+		}
+
+		// Normalize phone number to international format
+		let normalizedPhone = phone || '+84000000000'
+		if (normalizedPhone.startsWith('0')) {
+			// Convert 0xxx to +84xxx
+			normalizedPhone = '+84' + normalizedPhone.substring(1)
+		} else if (!normalizedPhone.startsWith('+')) {
+			// Add +84 if no prefix
+			normalizedPhone = '+84' + normalizedPhone
+		}
+
+		// Validate email format
+		const validEmail =
+			email && email.includes('@') && email.includes('.')
+				? email
+				: 'noreply@spillproofpos.com'
+
 		const payload = {
 			workflow_id: DIDIT_WORKFLOW_ID,
 			// No callback URL - we'll poll for results instead of redirect
@@ -29,14 +60,17 @@ export const createKYCSession = async (userId, email, phone) => {
 				user_id: userId,
 			},
 			contact_details: {
-				email: email || 'noreply@spillproofpos.com',
+				email: validEmail,
 				email_lang: 'vi',
-				phone: phone || '+84000000000',
+				phone: normalizedPhone,
 			},
 		}
 
-		// X-Api-Key header auto-injected by Vite proxy
-		const response = await axios.post(`${DIDIT_API_BASE}/session/`, payload, {
+		console.log('📤 Sending KYC request:', payload)
+
+		// Call Vercel Serverless Function (which proxies to Didit API)
+		// No API key needed - handled server-side
+		const response = await axios.post(`${KYC_API_BASE}/session`, payload, {
 			headers: {
 				'Content-Type': 'application/json',
 			},
@@ -44,6 +78,8 @@ export const createKYCSession = async (userId, email, phone) => {
 		})
 
 		const { session_id, url, status } = response.data
+
+		console.log('✅ KYC Session created:', { session_id, url, status })
 
 		return {
 			success: true,
@@ -54,12 +90,20 @@ export const createKYCSession = async (userId, email, phone) => {
 	} catch (error) {
 		console.error('❌ Failed to create KYC session:', error)
 
+		// Log detailed error response
+		if (error.response?.data) {
+			console.error('❌ Error details:', error.response.data)
+		}
+
 		if (error.response?.status === 401) {
 			throw new Error('Invalid API key. Please check configuration.')
 		}
 
 		if (error.response?.status === 400) {
-			throw new Error('Invalid KYC session parameters.')
+			const errorMsg = error.response?.data?.error || error.response?.data?.message
+			throw new Error(
+				`Invalid KYC session parameters: ${errorMsg || 'Check console for details'}`,
+			)
 		}
 
 		throw new Error(
@@ -75,12 +119,16 @@ export const createKYCSession = async (userId, email, phone) => {
  */
 export const getKYCResult = async (sessionId) => {
 	try {
-		// X-Api-Key header auto-injected by Vite proxy
-		const response = await axios.get(`${DIDIT_API_BASE}/session/${sessionId}/decision/`, {
+		// Call Vercel Serverless Function (which proxies to Didit API)
+		// No API key needed - handled server-side
+		const response = await axios.get(`${KYC_API_BASE}/decision/${sessionId}`, {
 			timeout: 15000,
 		})
 
 		const result = response.data
+
+		// Debug: Log response to see exact structure
+		console.log('🔍 KYC Decision API Response:', result)
 
 		return {
 			success: true,
